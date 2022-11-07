@@ -3,6 +3,7 @@ using Microsoft.VisualBasic;
 using System.Reflection.Metadata;
 using System.Runtime.ConstrainedExecution;
 using System.Security.Cryptography.X509Certificates;
+using System.Xml.Linq;
 
 Console.WriteLine("Hello, World!");
 
@@ -47,7 +48,7 @@ public class Biblioteca
     public Biblioteca()
     {
         string[] nomi = { "pippo", "mario", "giacomo", "lorenzo", "mauro", "francesco" };
-        string[] cognomi = { "elso", "Viola", "vico", "Balzo", "sassi", "falla"};
+        string[] cognomi = { "elso", "Viola", "vico", "Balzo", "sassi", "falla" };
         documenti = new List<Documenti>();
         utenti = new List<Utente>();
 
@@ -77,7 +78,7 @@ public class Biblioteca
 
     public string Ricerca(string cod)
     {
-        foreach(Documenti documento in documenti)
+        foreach (Documenti documento in documenti)
         {
             if (documento.Codice == cod || documento.Titolo == cod)
             {
@@ -88,8 +89,74 @@ public class Biblioteca
 
     }
 
+    public void NewPrestito( string dato, string nome, string cognome)
+    {
+        //il prestito al inizio non e esistente
+        bool prestito = false;
+
+        //facciamo una ricerca negli utenti
+        foreach (Utente utente in utenti)
+        {
+            if (utente.Nome == nome && utente.Cognome == cognome)
+            {
+                //una ricerca nei documenti del utente
+                foreach (Documenti documento in documenti)
+                {
+                    if (documento.ToString() == dato)
+                    {
+                        Console.WriteLine("Data di inizio del prestito");
+                        string inizio = Console.ReadLine();
+                        Console.WriteLine("Data di fine del prestito");
+                        string fine = Console.ReadLine();
+                        utente.prestiti.Add(new Prestito(documento.Codice, inizio, fine));
+                        //se il documento e stato prestato non è piu disponibile
+                        documento.Disponibile = false;
+                        prestito = true;
+
+
+                    }
+
+
+                }
+
+            }
+            //se il documento è disponibile
+            if (prestito)
+                break;
+
+
+        }
+        //se non è disponibile
+        if (!prestito)
+            Console.WriteLine("Il documeto  non è  disponibile");
+
     }
 
+    public void ListaPrestiti(string nome, string cognome)
+    {
+        bool trovato = false;
+        foreach (Utente utente in utenti)
+        {
+            if (utente.Nome == nome && utente.Cognome == cognome)
+            {
+                Console.WriteLine("Prestiti:");
+                foreach (Prestito prestito in utente.prestiti)
+                {
+                    Console.WriteLine("Documento con codice: {0}, data di inizio prestito {1}, data di fine prestito {2}", prestito.Codice, prestito.DataInizio, prestito.DataFine);
+                    trovato = true;
+                }
+                break;
+            }
+        }
+        if (!trovato)
+            Console.WriteLine("La ricerca non ha prodotto risultati");
+    }
+
+
+
+
+
+}
 
 
 
@@ -105,10 +172,13 @@ public class Documenti
 
     public string Titolo { get; set; }
     public int Anno { get; set; }
+
+    public bool Disponibile { get; set; }
     public string Settore { get; set; }
     public bool Stato { get; set; }
     public string Scaffale { get; set; }
     public string Autore { get; set; }
+
 
     //costruttore
     public Documenti(string codice, string titolo, int anno, string settore, bool stato, string scaffale, string autore)
@@ -120,6 +190,7 @@ public class Documenti
         Stato = stato;
         Scaffale = scaffale;
         Autore = autore;
+        Disponibile = true;
 
 
 
@@ -177,11 +248,34 @@ public class Utente
     public string Email { get; set; }
     public int Telefono { get; set; }
 
+    //relazione con la tabella prestiti
+    public List<Prestito> prestiti;
+
     public Utente(string nome, string cognome)
     {
         Nome = nome;
         Cognome = cognome;
+        prestiti = new List<Prestito>();
     }
 
+
+}
+
+
+public class Prestito
+{
+    public string Codice { get; set; }
+    public string DataInizio { get; set; }
+    public string DataFine { get; set; }
+
+
+    public Prestito(string codice, string dataInizio, string dataFine)
+    {
+        Codice = codice;
+        DataInizio = dataInizio;
+        DataFine = dataFine;
+
+
+    }
 
 }
